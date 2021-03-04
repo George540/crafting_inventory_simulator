@@ -8,15 +8,30 @@ public class InteractiveButton : MonoBehaviour, IPointerClickHandler, IPointerEn
     [SerializeField]
     private bool _interactable = true;
 
+    [SerializeField]
+    private Canvas _canvas;
+
     private InventoryView _inventoryView;
 
     public void OnPointerClick(PointerEventData eventData)
     {
-        if (eventData.selectedObject.TryGetComponent<Slot>(out var slot))
+        if (eventData.pointerEnter.TryGetComponent<Slot>(out var slot))
         {
-            if (slot.reservedItem.TryGetComponent<Tool>(out var tool))
+            if (_inventoryView.currentItemHeld == null)
             {
-                
+                _inventoryView.currentItemHeld = slot.reservedItem;
+                _inventoryView.currentItemHeld.gameObject.transform.parent = FindObjectOfType<Canvas>().gameObject.transform;
+                slot.RemoveItemInSlot();
+            }
+            else
+            {
+                if (slot.reservedItem == null)
+                {
+                    slot.reservedItem = _inventoryView.currentItemHeld;
+                    _inventoryView.currentItemHeld = null;
+                    slot.reservedItem.gameObject.transform.parent = slot.transform;
+                    slot.reservedItem.gameObject.transform.position = slot.transform.position;
+                }
             }
         }
     }
@@ -43,6 +58,14 @@ public class InteractiveButton : MonoBehaviour, IPointerClickHandler, IPointerEn
     // Update is called once per frame
     void Update()
     {
-        
+        SetItemToCursor();
+    }
+
+    private void SetItemToCursor()
+    {
+        if (_inventoryView.currentItemHeld != null)
+        {
+            _inventoryView.currentItemHeld.transform.position = Input.mousePosition;
+        }
     }
 }

@@ -24,10 +24,11 @@ public class Slot : MonoBehaviour
         return reservedItem != null;
     }
 
-    public void SetItemInSlot(Item newItem, int slotIndex)
+    public void SetItemInSlot(Item newItem)
     {
         reservedItem = newItem;
-        this.slotIndex = slotIndex;
+        reservedItem.gameObject.transform.parent = gameObject.transform;
+        reservedItem.gameObject.transform.position = gameObject.transform.position;
     }
 
     public Item RemoveItemInSlot()
