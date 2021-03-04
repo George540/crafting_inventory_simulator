@@ -13,15 +13,16 @@ public class InteractiveButton : MonoBehaviour, IPointerClickHandler, IPointerEn
 
     private InventoryView _inventoryView;
 
+    private const int maxMaterialStackAmount = 15;
+
     public void OnPointerClick(PointerEventData eventData)
     {
-        if (eventData.pointerEnter.TryGetComponent<Slot>(out var slot))
+        if (eventData.pointerEnter.TryGetComponent<Slot>(out var slot) && eventData.button == PointerEventData.InputButton.Left)
         {
             if (_inventoryView.currentItemHeld == null)
             {
-                _inventoryView.currentItemHeld = slot.reservedItem;
+                _inventoryView.currentItemHeld = slot.RemoveItemInSlot();
                 _inventoryView.currentItemHeld.gameObject.transform.parent = FindObjectOfType<Canvas>().gameObject.transform;
-                slot.RemoveItemInSlot();
             }
             else
             {
@@ -29,10 +30,62 @@ public class InteractiveButton : MonoBehaviour, IPointerClickHandler, IPointerEn
                 {
                     slot.reservedItem = _inventoryView.currentItemHeld;
                     _inventoryView.currentItemHeld = null;
+
+                }
+                else
+                {
+                    if (slot.reservedItem.GetComponent<Material>() != null && _inventoryView.currentItemHeld.GetComponent<Material>() != null)
+                    {
+                        HandleMaterialSwapping(slot);
+                    }
+                    else
+                    {
+                        HandleGeneralSwapping(slot);
+                    }
+                }
+
+                if (slot.reservedItem != null)
+                {
                     slot.reservedItem.gameObject.transform.parent = slot.transform;
                     slot.reservedItem.gameObject.transform.position = slot.transform.position;
                 }
             }
+        }
+    }
+
+    private void HandleGeneralSwapping(Slot slot)
+    {
+        var tempItem = slot.reservedItem;
+        slot.RemoveItemInSlot();
+        slot.reservedItem = _inventoryView.currentItemHeld;
+        _inventoryView.currentItemHeld = tempItem;
+        _inventoryView.currentItemHeld.gameObject.transform.parent = FindObjectOfType<Canvas>().gameObject.transform;
+    }
+
+    private void HandleMaterialSwapping(Slot slot)
+    {
+        var slotMaterial = slot.reservedItem.GetComponent<Material>();
+        var hoverMaterial = _inventoryView.currentItemHeld.GetComponent<Material>();
+
+        if (slotMaterial.name.Equals(hoverMaterial.name))
+        {
+            var additionalAmount = hoverMaterial.GetAmount();
+            if (slot.reservedItem.GetComponent<Material>().GetAmount() + additionalAmount <= maxMaterialStackAmount)
+            {
+                slot.reservedItem.GetComponent<Material>().AddAmount(additionalAmount);
+                Destroy(_inventoryView.currentItemHeld.gameObject);
+                _inventoryView.currentItemHeld = null;
+            }
+            else
+            {
+                var requiredAmountForSlotFilled = maxMaterialStackAmount - slotMaterial.GetAmount();
+                hoverMaterial.RemoveAmount(requiredAmountForSlotFilled);
+                slotMaterial.SetAmount(maxMaterialStackAmount);
+            }
+        }
+        else
+        {
+            HandleGeneralSwapping(slot);
         }
     }
 

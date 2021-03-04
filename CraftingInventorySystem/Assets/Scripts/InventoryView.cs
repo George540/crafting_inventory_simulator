@@ -30,7 +30,7 @@ public class InventoryView : MonoBehaviour
     {
         for (int i = 0; i < 5; i++)
         {
-            slots[i].SetItemInSlot(Instantiate(items[Random.Range(0, 2)]));
+            slots[i].SetItemInSlot(Instantiate(items[Random.Range(1, items.Length)]));
         }
     }
 

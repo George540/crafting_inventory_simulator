@@ -1,28 +1,52 @@
 ﻿using System.Collections;
 using System.Collections.Generic;
+using TMPro;
 using UnityEngine;
 
 public class Material : Item, IStackable
 {
-    private int amount;
+    [SerializeField]
+    private int _amount;
+
+    [SerializeField]
+    private TMP_Text _amountTextField;
+
+    private void Start()
+    {
+        SetAmount(Random.Range(4, 13));
+    }
+
+    public void SetAmountTextField(int amount)
+    {
+        _amountTextField.text = $"{amount}";
+    }
 
     public void StackItem(Material otherItem)
     {
-        amount += otherItem.GetAmount();
+        _amount += otherItem.GetAmount();
+        SetAmountTextField(_amount);
     }
 
     public int GetAmount()
     {
-        return amount;
+        return _amount;
     }
 
     public void SetAmount(int newAmount)
     {
-        amount = newAmount;
+        _amount = newAmount;
+        SetAmountTextField(_amount);
     }
 
-    public void AddAmount(int newAmount)
+    public void AddAmount(int amount)
     {
-        amount += newAmount;
+        _amount += amount;
+        SetAmountTextField(_amount);
+    }
+
+    public void RemoveAmount(int amount)
+    {
+        _amount -= amount;
+        SetAmountTextField(_amount);
     }
 }
