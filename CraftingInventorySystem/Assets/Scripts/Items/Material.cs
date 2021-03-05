@@ -11,9 +11,12 @@ public class Material : Item, IStackable
     [SerializeField]
     private TMP_Text _amountTextField;
 
+    public bool isTest = true;
+
     private void Start()
     {
-        SetAmount(Random.Range(4, 13));
+        if (isTest)
+            SetAmount(Random.Range(4, 13));
     }
 
     public void SetAmountTextField(int amount)
@@ -47,6 +50,18 @@ public class Material : Item, IStackable
     public void RemoveAmount(int amount)
     {
         _amount -= amount;
+        SetAmountTextField(_amount);
+    }
+
+    public void IncrementAmount()
+    {
+        _amount++;
+        SetAmountTextField(_amount);
+    }
+
+    public void DecrementAmount()
+    {
+        _amount--;
         SetAmountTextField(_amount);
     }
 }

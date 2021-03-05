@@ -27,7 +27,7 @@ public class Slot : MonoBehaviour
     public void SetItemInSlot(Item newItem)
     {
         reservedItem = newItem;
-        reservedItem.gameObject.transform.parent = gameObject.transform;
+        reservedItem.gameObject.transform.SetParent(gameObject.transform);
         reservedItem.gameObject.transform.position = gameObject.transform.position;
     }
 

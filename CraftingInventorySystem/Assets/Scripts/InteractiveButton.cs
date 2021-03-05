@@ -17,39 +17,99 @@ public class InteractiveButton : MonoBehaviour, IPointerClickHandler, IPointerEn
 
     public void OnPointerClick(PointerEventData eventData)
     {
-        if (eventData.pointerEnter.TryGetComponent<Slot>(out var slot) && eventData.button == PointerEventData.InputButton.Left)
+        eventData.pointerEnter.TryGetComponent<Slot>(out var slot);
+        if (slot != null && eventData.button == PointerEventData.InputButton.Left)
         {
-            if (_inventoryView.currentItemHeld == null)
+            HandleLeftMouseButtonEvents(slot);
+        }
+        else if (slot != null && eventData.button == PointerEventData.InputButton.Right)
+        {
+            HandleRightMouseButtonEvents(slot);
+        }
+    }
+
+    private void HandleLeftMouseButtonEvents(Slot slot)
+    {
+        if (_inventoryView.currentItemHeld == null)
+        {
+            _inventoryView.currentItemHeld = slot.RemoveItemInSlot();
+            _inventoryView.currentItemHeld.gameObject.transform.SetParent(FindObjectOfType<Canvas>().gameObject.transform);
+        }
+        else
+        {
+            if (slot.reservedItem == null)
             {
-                _inventoryView.currentItemHeld = slot.RemoveItemInSlot();
-                _inventoryView.currentItemHeld.gameObject.transform.parent = FindObjectOfType<Canvas>().gameObject.transform;
+                slot.reservedItem = _inventoryView.currentItemHeld;
+                _inventoryView.currentItemHeld = null;
+
             }
             else
             {
-                if (slot.reservedItem == null)
+                if (slot.reservedItem.gameObject.GetComponent<Material>() != null && _inventoryView.currentItemHeld.gameObject.GetComponent<Material>() != null)
                 {
-                    slot.reservedItem = _inventoryView.currentItemHeld;
-                    _inventoryView.currentItemHeld = null;
-
+                    HandleMaterialSwapping(slot);
                 }
                 else
                 {
-                    if (slot.reservedItem.GetComponent<Material>() != null && _inventoryView.currentItemHeld.GetComponent<Material>() != null)
-                    {
-                        HandleMaterialSwapping(slot);
-                    }
-                    else
-                    {
-                        HandleGeneralSwapping(slot);
-                    }
-                }
-
-                if (slot.reservedItem != null)
-                {
-                    slot.reservedItem.gameObject.transform.parent = slot.transform;
-                    slot.reservedItem.gameObject.transform.position = slot.transform.position;
+                    HandleGeneralSwapping(slot);
                 }
             }
+
+            if (slot.reservedItem != null)
+            {
+                slot.reservedItem.gameObject.transform.SetParent(slot.transform);
+                slot.reservedItem.gameObject.transform.position = slot.transform.position;
+            }
+        }
+    }
+
+    private void HandleRightMouseButtonEvents(Slot slot)
+    {
+        if (_inventoryView.currentItemHeld != null && _inventoryView.currentItemHeld.TryGetComponent<Material>(out var inventoryMaterial))
+        {
+            if (slot.reservedItem == null)
+            {
+                slot.reservedItem = Instantiate(inventoryMaterial);
+                slot.reservedItem.gameObject.transform.SetParent(slot.gameObject.transform);
+                slot.reservedItem.gameObject.transform.localPosition = Vector3.zero;
+                slot.reservedItem.gameObject.GetComponent<Material>().isTest = false;
+                slot.reservedItem.gameObject.GetComponent<Material>().SetAmount(1);
+                DecrementInventoryMaterial(inventoryMaterial);
+            }
+            else
+            {
+                var slotMaterial = slot.reservedItem.gameObject.GetComponent<Material>();
+                if (slotMaterial.GetAmount() < maxMaterialStackAmount)
+                {
+                    slotMaterial.IncrementAmount();
+                    DecrementInventoryMaterial(inventoryMaterial);
+                }
+            }
+        }
+        else if (_inventoryView.currentItemHeld == null && slot.reservedItem.TryGetComponent<Material>(out var slotMaterial))
+        {
+            if (slot.reservedItem != null)
+            {
+                _inventoryView.currentItemHeld = Instantiate(slotMaterial);
+                _inventoryView.currentItemHeld.gameObject.transform.SetParent(FindObjectOfType<Canvas>().gameObject.transform);
+                var inventoryNewMaterial = _inventoryView.currentItemHeld.gameObject.GetComponent<Material>();
+                inventoryNewMaterial.isTest = false;
+                inventoryNewMaterial.SetAmount(slotMaterial.GetAmount()/2);
+                slotMaterial.SetAmount(slotMaterial.GetAmount() - inventoryNewMaterial.GetAmount());
+            }
+        }
+    }
+
+    private void DecrementInventoryMaterial(Material material)
+    {
+        if (material.GetAmount() > 1)
+        {
+            material.DecrementAmount();
+        }
+        else
+        {
+            Destroy(_inventoryView.currentItemHeld.gameObject);
+            _inventoryView.currentItemHeld = null;
         }
     }
 
@@ -59,7 +119,7 @@ public class InteractiveButton : MonoBehaviour, IPointerClickHandler, IPointerEn
         slot.RemoveItemInSlot();
         slot.reservedItem = _inventoryView.currentItemHeld;
         _inventoryView.currentItemHeld = tempItem;
-        _inventoryView.currentItemHeld.gameObject.transform.parent = FindObjectOfType<Canvas>().gameObject.transform;
+        _inventoryView.currentItemHeld.gameObject.transform.SetParent(FindObjectOfType<Canvas>().gameObject.transform);
     }
 
     private void HandleMaterialSwapping(Slot slot)
@@ -67,7 +127,7 @@ public class InteractiveButton : MonoBehaviour, IPointerClickHandler, IPointerEn
         var slotMaterial = slot.reservedItem.GetComponent<Material>();
         var hoverMaterial = _inventoryView.currentItemHeld.GetComponent<Material>();
 
-        if (slotMaterial.name.Equals(hoverMaterial.name))
+        if (slotMaterial.GetName().Equals(hoverMaterial.GetName()))
         {
             var additionalAmount = hoverMaterial.GetAmount();
             if (slot.reservedItem.GetComponent<Material>().GetAmount() + additionalAmount <= maxMaterialStackAmount)
