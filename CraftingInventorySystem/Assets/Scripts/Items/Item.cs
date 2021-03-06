@@ -8,11 +8,6 @@ public class Item : MonoBehaviour
     [SerializeField]
     private string _name;
 
-    private void Start()
-    {
-        
-    }
-
     public string GetName()
     {
         return _name;

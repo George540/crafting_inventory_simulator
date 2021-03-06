@@ -11,6 +11,7 @@ GameObject:
   - component: {fileID: 2848268238509304369}
   - component: {fileID: 5272491401007804329}
   - component: {fileID: 1916971559906750628}
+  - component: {fileID: -2492351595451796784}
   - component: {fileID: 3978788705581695177}
   - component: {fileID: 773399960302245783}
   m_Layer: 5
@@ -60,6 +61,26 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   _name: Sword
+--- !u!114 &-2492351595451796784
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 7038233979270165841}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: e6304e17b0528014cb47044b8e6a06fb, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  blueprint:
+  - itemAtSlot: {fileID: 5505790121116863533, guid: 97c32e0aaf883154a826f03ebd4c871e, type: 3}
+    index: 1
+  - itemAtSlot: {fileID: 5505790121116863533, guid: 97c32e0aaf883154a826f03ebd4c871e, type: 3}
+    index: 4
+  - itemAtSlot: {fileID: 5505790121116863533, guid: efc6cd99882bfd34aa274c6b387b3e71, type: 3}
+    index: 7
+  _resultItem: {fileID: 1916971559906750628}
 --- !u!114 &3978788705581695177
 MonoBehaviour:
   m_ObjectHideFlags: 0

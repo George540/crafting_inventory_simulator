@@ -1,5 +1,7 @@
 ﻿using System.Collections;
 using System.Collections.Generic;
+using System.Linq;
+using System.Runtime.InteropServices.WindowsRuntime;
 using UnityEngine;
 using UnityEngine.EventSystems;
 
@@ -11,20 +13,24 @@ public class InteractiveButton : MonoBehaviour, IPointerClickHandler, IPointerEn
     [SerializeField]
     private Canvas _canvas;
 
-    private InventoryView _inventoryView;
+    public InventoryView _inventoryView;
+    public CraftingView _craftingView;
 
     private const int maxMaterialStackAmount = 15;
 
     public void OnPointerClick(PointerEventData eventData)
     {
-        eventData.pointerEnter.TryGetComponent<Slot>(out var slot);
-        if (slot != null && eventData.button == PointerEventData.InputButton.Left)
+        if(_inventoryView != null)
         {
-            HandleLeftMouseButtonEvents(slot);
-        }
-        else if (slot != null && eventData.button == PointerEventData.InputButton.Right)
-        {
-            HandleRightMouseButtonEvents(slot);
+            eventData.pointerEnter.TryGetComponent<Slot>(out var slot);
+            if (slot != null && eventData.button == PointerEventData.InputButton.Left)
+            {
+                HandleLeftMouseButtonEvents(slot);
+            }
+            else if (slot != null && eventData.button == PointerEventData.InputButton.Right)
+            {
+                HandleRightMouseButtonEvents(slot);
+            }
         }
     }
 
@@ -41,17 +47,18 @@ public class InteractiveButton : MonoBehaviour, IPointerClickHandler, IPointerEn
             {
                 slot.reservedItem = _inventoryView.currentItemHeld;
                 _inventoryView.currentItemHeld = null;
-
             }
             else
             {
                 if (slot.reservedItem.gameObject.GetComponent<Material>() != null && _inventoryView.currentItemHeld.gameObject.GetComponent<Material>() != null)
                 {
                     HandleMaterialSwapping(slot);
+                    InstantiateResultObject();
                 }
                 else
                 {
                     HandleGeneralSwapping(slot);
+                    InstantiateResultObject();
                 }
             }
 
@@ -151,7 +158,7 @@ public class InteractiveButton : MonoBehaviour, IPointerClickHandler, IPointerEn
 
     public void OnPointerEnter(PointerEventData eventData)
     {
-        if (eventData.pointerEnter.TryGetComponent<Slot>(out var slot))
+        if (_inventoryView != null && eventData.pointerEnter.TryGetComponent<Slot>(out var slot))
         {
             _inventoryView.currentHoveredIndex = slot.slotIndex;
         }
@@ -165,7 +172,7 @@ public class InteractiveButton : MonoBehaviour, IPointerClickHandler, IPointerEn
     // Start is called before the first frame update
     void Start()
     {
-        _inventoryView = FindObjectOfType<InventoryView>();
+        
     }
 
     // Update is called once per frame
@@ -176,9 +183,31 @@ public class InteractiveButton : MonoBehaviour, IPointerClickHandler, IPointerEn
 
     private void SetItemToCursor()
     {
-        if (_inventoryView.currentItemHeld != null)
+        if (_inventoryView != null && _inventoryView.currentItemHeld != null)
         {
             _inventoryView.currentItemHeld.transform.position = Input.mousePosition;
         }
+    }
+
+
+    private void InstantiateResultObject()
+    {
+        if (CheckForRecipes(_craftingView.GetRecipes()) != null)
+        {
+            GameObject resultItem = Instantiate(CheckForRecipes(_craftingView.GetRecipes()).gameObject, _craftingView.GetResultSlot().transform);
+            _craftingView.GetResultSlot().reservedItem = resultItem.GetComponent<Item>();
+            _craftingView.GetResultSlot().reservedItem.gameObject.transform.SetParent(_craftingView.GetResultSlot().gameObject.transform);
+        }
+    }
+    private Item CheckForRecipes(List<Recipe> recipes)
+    {
+        foreach (var recipe in recipes)
+        {
+            if (_craftingView.CheckForRecipe(recipe) != null)
+            {
+                return _craftingView.CheckForRecipe(recipe);
+            }
+        }
+        return null;
     }
 }
